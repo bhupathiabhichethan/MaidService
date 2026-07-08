@@ -673,6 +673,160 @@ function HelperDashboard({ user }) {
   );
 }
 
+function AdminHelperReview({ helper, open, onOpenChange, onVerify, onReject }) {
+  const [details, setDetails] = useState(null);
+  const [docs, setDocs] = useState([]);
+  useEffect(()=>{
+    if (helper && open) {
+      api('/helpers/'+helper.id).then(setDetails).catch(()=>{});
+      api('/documents?helper_id='+helper.id).then(d=>setDocs(d.documents)).catch(()=>{});
+    }
+  },[helper, open]);
+  if (!helper) return null;
+  const service = SERVICES.find(s=>s.value===helper.service_type);
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-3xl max-h-[92vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2"><Shield className="h-5 w-5"/>Review Helper Application</DialogTitle>
+          <DialogDescription>Review documents and profile before verifying.</DialogDescription>
+        </DialogHeader>
+        <div className="grid grid-cols-1 md:grid-cols-[220px_1fr] gap-4">
+          <div className="space-y-3">
+            <div className="relative rounded-lg overflow-hidden aspect-square bg-muted">
+              <img src={helper.photo} alt={helper.name} className="w-full h-full object-cover"/>
+              {helper.verified && <Badge className="absolute top-2 right-2 bg-emerald-600"><BadgeCheck className="h-3 w-3 mr-1"/>Verified</Badge>}
+            </div>
+            <div className="text-center">
+              <div className="text-lg font-bold">{helper.name}</div>
+              <div className="text-xs text-muted-foreground">{service?.icon} {service?.label} · {helper.city}</div>
+              <div className="text-xs text-muted-foreground">{helper.experience} years exp</div>
+              <div className="flex items-center justify-center gap-1 mt-1"><Star className="h-3 w-3 fill-amber-400 text-amber-400"/><span className="text-sm">{helper.rating || 'New'} ({helper.reviews_count})</span></div>
+            </div>
+          </div>
+          <div className="space-y-3">
+            <div>
+              <h4 className="font-semibold text-sm mb-1">About</h4>
+              <p className="text-sm text-muted-foreground">{helper.bio || 'No bio provided'}</p>
+            </div>
+            <div className="grid grid-cols-3 gap-2">
+              <div className="border rounded p-2 text-center"><div className="text-xs text-muted-foreground uppercase">Hourly</div><div className="font-bold text-primary">₹{helper.hourly_price}</div></div>
+              <div className="border rounded p-2 text-center"><div className="text-xs text-muted-foreground uppercase">Monthly</div><div className="font-bold text-primary">₹{helper.monthly_price?.toLocaleString('en-IN')}</div></div>
+              <div className="border rounded p-2 text-center"><div className="text-xs text-muted-foreground uppercase">Yearly</div><div className="font-bold text-primary">₹{helper.yearly_price?.toLocaleString('en-IN')}</div></div>
+            </div>
+            <div>
+              <h4 className="font-semibold text-sm mb-1">Skills</h4>
+              <div className="flex flex-wrap gap-1">{helper.skills?.length ? helper.skills.map(s=><Badge key={s} variant="secondary">{s}</Badge>) : <span className="text-xs text-muted-foreground">None listed</span>}</div>
+            </div>
+            <div>
+              <h4 className="font-semibold text-sm mb-1">Languages</h4>
+              <div className="flex flex-wrap gap-1">{helper.languages?.length ? helper.languages.map(s=><Badge key={s} variant="outline">{s}</Badge>) : <span className="text-xs text-muted-foreground">None listed</span>}</div>
+            </div>
+            <div className="text-sm"><Clock className="h-3 w-3 inline mr-1"/><strong>Availability:</strong> {helper.availability}</div>
+            <Separator/>
+            <div>
+              <h4 className="font-semibold text-sm mb-2 flex items-center gap-1"><FileText className="h-4 w-4"/>Verification Documents ({docs.length})</h4>
+              {docs.length === 0 && <p className="text-xs text-muted-foreground italic">⚠️ No documents uploaded by this helper yet.</p>}
+              <div className="space-y-1">
+                {docs.map(d => (
+                  <div key={d.id} className="flex items-center justify-between p-2 border rounded text-sm">
+                    <div className="flex items-center gap-2"><FileText className="h-4 w-4 text-muted-foreground"/><span>{d.type}</span><span className="text-xs text-muted-foreground">— {d.name}</span></div>
+                    <div className="flex items-center gap-2">
+                      <a href={d.data} target="_blank" rel="noreferrer" className="text-xs text-primary underline">View</a>
+                      <Badge variant={d.status==='approved'?'default':d.status==='rejected'?'destructive':'secondary'}>{d.status}</Badge>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <Separator/>
+            <div>
+              <h4 className="font-semibold text-sm mb-2">Recent Reviews ({details?.reviews?.length || 0})</h4>
+              <div className="space-y-2 max-h-40 overflow-y-auto">
+                {details?.reviews?.slice(0,5).map(r => (
+                  <div key={r.id} className="border rounded p-2 text-sm">
+                    <div className="flex items-center justify-between mb-0.5">
+                      <span className="font-medium">{r.user_name}</span>
+                      <div className="flex items-center gap-0.5">{[1,2,3,4,5].map(i => <Star key={i} className={`h-3 w-3 ${i<=r.rating?'fill-amber-400 text-amber-400':'text-muted-foreground/30'}`}/>)}</div>
+                    </div>
+                    <p className="text-muted-foreground">{r.comment}</p>
+                  </div>
+                ))}
+                {!details?.reviews?.length && <p className="text-xs text-muted-foreground italic">No reviews yet.</p>}
+              </div>
+            </div>
+          </div>
+        </div>
+        <DialogFooter className="gap-2">
+          {helper.verified ? (
+            <Button variant="destructive" onClick={()=>{onReject(helper); onOpenChange(false);}}><XCircle className="h-4 w-4 mr-1"/>Revoke Verification</Button>
+          ) : (
+            <Button className="bg-emerald-600 hover:bg-emerald-700" onClick={()=>{onVerify(helper); onOpenChange(false);}}><BadgeCheck className="h-4 w-4 mr-1"/>Approve & Verify</Button>
+          )}
+          <Button variant="outline" onClick={()=>onOpenChange(false)}>Close</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function AdminBookingDetail({ booking, open, onOpenChange }) {
+  if (!booking) return null;
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Booking Details</DialogTitle>
+          <DialogDescription>#{booking.id.slice(0,8)}</DialogDescription>
+        </DialogHeader>
+        <div className="space-y-3 text-sm">
+          <div className="grid grid-cols-2 gap-3">
+            <div><span className="text-muted-foreground">Household</span><div className="font-medium">{booking.user_name}</div><div className="text-xs">{booking.user_email}</div></div>
+            <div><span className="text-muted-foreground">Helper</span><div className="font-medium">{booking.helper_name}</div></div>
+            <div><span className="text-muted-foreground">Plan</span><div className="font-medium capitalize">{booking.plan}{booking.hours?` · ${booking.hours}h`:''}</div></div>
+            <div><span className="text-muted-foreground">Price</span><div className="font-medium text-primary">₹{booking.price?.toLocaleString('en-IN')}</div></div>
+            <div><span className="text-muted-foreground">Start Date</span><div className="font-medium">{booking.start_date}</div></div>
+            <div><span className="text-muted-foreground">Status</span><Badge variant={booking.status==='accepted'||booking.status==='completed'?'default':booking.status==='rejected'||booking.status==='cancelled'?'destructive':'secondary'} className="capitalize">{booking.status}</Badge></div>
+          </div>
+          <div><span className="text-muted-foreground">Address</span><div>{booking.address || '—'}</div></div>
+          {booking.notes && <div><span className="text-muted-foreground">Notes</span><div className="italic">{booking.notes}</div></div>}
+          <div className="text-xs text-muted-foreground">Created: {new Date(booking.created_at).toLocaleString()}</div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function AdminUserDetail({ user, open, onOpenChange, onDelete }) {
+  if (!user) return null;
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2"><User className="h-5 w-5"/>User Details</DialogTitle>
+        </DialogHeader>
+        <div className="space-y-2 text-sm">
+          <div className="grid grid-cols-2 gap-3">
+            <div><span className="text-muted-foreground">Name</span><div className="font-medium">{user.name}</div></div>
+            <div><span className="text-muted-foreground">Role</span><Badge variant="outline" className="capitalize">{user.role}</Badge></div>
+            <div><span className="text-muted-foreground">Email</span><div>{user.email}</div></div>
+            <div><span className="text-muted-foreground">Phone</span><div>{user.phone || '—'}</div></div>
+            <div><span className="text-muted-foreground">City</span><div>{user.city || '—'}</div></div>
+            <div><span className="text-muted-foreground">Family Size</span><div>{user.family_size || '—'}</div></div>
+          </div>
+          {user.address && <div><span className="text-muted-foreground">Address</span><div>{user.address}</div></div>}
+          {user.preferences && <div><span className="text-muted-foreground">Preferences</span><div className="italic">{user.preferences}</div></div>}
+          <div className="text-xs text-muted-foreground">Joined: {new Date(user.created_at).toLocaleDateString()}</div>
+        </div>
+        <DialogFooter>
+          {user.role !== 'admin' && <Button variant="destructive" onClick={()=>{onDelete(user.id); onOpenChange(false);}}><Trash2 className="h-4 w-4 mr-1"/>Remove User</Button>}
+          <Button variant="outline" onClick={()=>onOpenChange(false)}>Close</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 function AdminDashboard() {
   const [stats, setStats] = useState(null);
   const [analytics, setAnalytics] = useState(null);
@@ -685,6 +839,10 @@ function AdminDashboard() {
   const [categories, setCategories] = useState([]);
   const [replyMap, setReplyMap] = useState({});
   const [newCat, setNewCat] = useState({ name:'', icon:'✨', description:'' });
+  const [reviewHelper, setReviewHelper] = useState(null);
+  const [reviewOpen, setReviewOpen] = useState(false);
+  const [bookingDetail, setBookingDetail] = useState(null);
+  const [userDetail, setUserDetail] = useState(null);
   const load = async () => {
     setStats(await api('/admin/stats'));
     setAnalytics(await api('/admin/analytics'));
@@ -841,21 +999,27 @@ function AdminDashboard() {
           )}
         </TabsContent>
         <TabsContent value="helpers" className="space-y-2 pt-3">
-          {helpers.map(h => (
-            <div key={h.id} className="flex items-center justify-between p-3 border rounded-lg">
-              <div className="flex items-center gap-3">
-                <Avatar><AvatarImage src={h.photo}/><AvatarFallback>{h.name?.[0]}</AvatarFallback></Avatar>
-                <div>
-                  <div className="font-medium">{h.name}</div>
-                  <div className="text-xs text-muted-foreground">{h.service_type} · {h.city} · {h.experience}y</div>
+          <p className="text-xs text-muted-foreground italic mb-2">💡 Click any helper to review their profile, documents & reviews before verifying.</p>
+          {helpers.map(h => {
+            const helperDocs = docs.filter(d=>d.helper_id===h.id);
+            const pendingDocs = helperDocs.filter(d=>d.status==='pending').length;
+            return (
+              <div key={h.id} className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/40 hover:border-primary/40 transition-colors cursor-pointer" onClick={()=>{setReviewHelper(h); setReviewOpen(true);}}>
+                <div className="flex items-center gap-3">
+                  <Avatar><AvatarImage src={h.photo}/><AvatarFallback>{h.name?.[0]}</AvatarFallback></Avatar>
+                  <div>
+                    <div className="font-medium flex items-center gap-2">{h.name}{pendingDocs>0 && <Badge variant="secondary" className="text-xs">{pendingDocs} docs pending</Badge>}</div>
+                    <div className="text-xs text-muted-foreground">{h.service_type} · {h.city} · {h.experience}y · {helperDocs.length} docs uploaded</div>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2" onClick={e=>e.stopPropagation()}>
+                  {h.verified?<Badge className="bg-emerald-600"><BadgeCheck className="h-3 w-3 mr-1"/>Verified</Badge>:<Badge variant="secondary">Pending</Badge>}
+                  <Switch checked={h.verified} onCheckedChange={()=>toggleVerify(h)}/>
+                  <Button size="sm" variant="outline" onClick={(e)=>{e.stopPropagation(); setReviewHelper(h); setReviewOpen(true);}}>Review →</Button>
                 </div>
               </div>
-              <div className="flex items-center gap-2">
-                {h.verified?<Badge className="bg-emerald-600"><BadgeCheck className="h-3 w-3 mr-1"/>Verified</Badge>:<Badge variant="secondary">Pending</Badge>}
-                <Switch checked={h.verified} onCheckedChange={()=>toggleVerify(h)}/>
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </TabsContent>
         <TabsContent value="documents" className="space-y-2 pt-3">
           {docs.map(d => {
@@ -885,28 +1049,30 @@ function AdminDashboard() {
           {!docs.length && <p className="text-sm text-muted-foreground">No documents uploaded.</p>}
         </TabsContent>
         <TabsContent value="bookings" className="space-y-2 pt-3">
+          <p className="text-xs text-muted-foreground italic mb-2">💡 Click any booking to view full details.</p>
           {bookings.map(b => (
-            <div key={b.id} className="flex items-center justify-between p-3 border rounded-lg">
+            <div key={b.id} className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/40 hover:border-primary/40 cursor-pointer transition-colors" onClick={()=>setBookingDetail(b)}>
               <div>
                 <div className="font-medium">{b.user_name} → {b.helper_name}</div>
                 <div className="text-xs text-muted-foreground">{b.plan} · {b.start_date} · ₹{b.price?.toLocaleString('en-IN')}</div>
               </div>
-              <Badge variant={b.status==='accepted'?'default':b.status==='rejected'||b.status==='cancelled'?'destructive':'secondary'}>{b.status}</Badge>
+              <Badge variant={b.status==='accepted'||b.status==='completed'?'default':b.status==='rejected'||b.status==='cancelled'?'destructive':'secondary'}>{b.status}</Badge>
             </div>
           ))}
         </TabsContent>
         <TabsContent value="users" className="space-y-2 pt-3">
+          <p className="text-xs text-muted-foreground italic mb-2">💡 Click any user to view their full profile.</p>
           {users.map(u => (
-            <div key={u.id} className="flex items-center justify-between p-3 border rounded-lg">
+            <div key={u.id} className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/40 hover:border-primary/40 cursor-pointer transition-colors" onClick={()=>setUserDetail(u)}>
               <div className="flex items-center gap-3">
                 <Avatar><AvatarFallback>{u.name?.[0]}</AvatarFallback></Avatar>
                 <div>
                   <div className="font-medium">{u.name}</div>
-                  <div className="text-xs text-muted-foreground">{u.email} · {u.city}</div>
+                  <div className="text-xs text-muted-foreground">{u.email} · {u.city || '—'}</div>
                 </div>
               </div>
-              <div className="flex items-center gap-2">
-                <Badge variant="outline">{u.role}</Badge>
+              <div className="flex items-center gap-2" onClick={e=>e.stopPropagation()}>
+                <Badge variant="outline" className="capitalize">{u.role}</Badge>
                 {u.role!=='admin' && <Button size="sm" variant="ghost" onClick={()=>deleteUser(u.id)}><Trash2 className="h-4 w-4"/></Button>}
               </div>
             </div>
@@ -982,6 +1148,9 @@ function AdminDashboard() {
           </div>
         </TabsContent>
       </Tabs>
+      <AdminHelperReview helper={reviewHelper} open={reviewOpen} onOpenChange={setReviewOpen} onVerify={(h)=>toggleVerify(h)} onReject={(h)=>toggleVerify(h)}/>
+      <AdminBookingDetail booking={bookingDetail} open={!!bookingDetail} onOpenChange={(o)=>!o&&setBookingDetail(null)}/>
+      <AdminUserDetail user={userDetail} open={!!userDetail} onOpenChange={(o)=>!o&&setUserDetail(null)} onDelete={deleteUser}/>
     </div>
   );
 }
