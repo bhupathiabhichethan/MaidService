@@ -998,6 +998,8 @@ function App() {
   const [view, setView] = useState('home'); // home | dashboard
   const [loading, setLoading] = useState(true);
 
+  const loginAndRoute = (u) => { login(u); if (u.role !== 'household') setView('dashboard'); };
+
   const loadHelpers = async () => {
     setLoading(true);
     const params = new URLSearchParams();
@@ -1066,8 +1068,15 @@ function App() {
                 </h1>
                 <p className="text-lg text-muted-foreground max-w-lg">Skip the sketchy agents. Book verified domestic help with flexible hourly, monthly & yearly plans — with transparent pricing and real reviews.</p>
                 <div className="flex flex-wrap gap-3">
-                  <Button size="lg" onClick={()=>document.getElementById('browse')?.scrollIntoView({behavior:'smooth'})}><Search className="h-5 w-5 mr-2"/>Find a Helper</Button>
-                  <Button size="lg" variant="outline" onClick={()=>{setAuthMode('register'); setAuthOpen(true);}}><Heart className="h-5 w-5 mr-2"/>Become a Helper</Button>
+                  {(!user || user.role==='household') && (
+                    <Button size="lg" onClick={()=>document.getElementById('browse')?.scrollIntoView({behavior:'smooth'})}><Search className="h-5 w-5 mr-2"/>Find a Helper</Button>
+                  )}
+                  {!user && (
+                    <Button size="lg" variant="outline" onClick={()=>{setAuthMode('register'); setAuthOpen(true);}}><Heart className="h-5 w-5 mr-2"/>Become a Helper</Button>
+                  )}
+                  {user && user.role!=='household' && (
+                    <Button size="lg" onClick={()=>setView('dashboard')}><Users className="h-5 w-5 mr-2"/>Go to my Dashboard</Button>
+                  )}
                 </div>
                 <div className="grid grid-cols-3 gap-4 pt-4 max-w-md">
                   <div><div className="text-2xl font-bold text-primary">8+</div><div className="text-xs text-muted-foreground">Verified Helpers</div></div>
@@ -1102,6 +1111,7 @@ function App() {
           </section>
 
           {/* Service categories */}
+          {(!user || user.role==='household') && (
           <section className="container mx-auto px-4 py-10">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               {SERVICES.map(s => (
@@ -1114,8 +1124,10 @@ function App() {
               ))}
             </div>
           </section>
+          )}
 
           {/* Browse */}
+          {(!user || user.role==='household') && (
           <section id="browse" className="container mx-auto px-4 py-8">
             <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
               <div>
@@ -1212,6 +1224,7 @@ function App() {
               </div>
             )}
           </section>
+          )}
 
           {/* Trust section */}
           <section className="bg-muted/30 border-t mt-12">
@@ -1245,7 +1258,7 @@ function App() {
         </>
       )}
 
-      <AuthDialog open={authOpen} onOpenChange={setAuthOpen} mode={authMode} setMode={setAuthMode} onSuccess={login}/>
+      <AuthDialog open={authOpen} onOpenChange={setAuthOpen} mode={authMode} setMode={setAuthMode} onSuccess={loginAndRoute}/>
       <HelperDetailSheet helper={selectedHelper} open={sheetOpen} onOpenChange={setSheetOpen} user={user} onBook={startBooking}/>
       <BookingDialog helper={bookingHelper} open={!!bookingHelper} onOpenChange={(o)=>!o&&setBookingHelper(null)} user={user} onBooked={()=>{}}/>
     </div>
