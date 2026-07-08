@@ -370,6 +370,142 @@ function ProfileEditor({ user, onUpdate }) {
   );
 }
 
+function HelperProfileEditor({ helper, onSaved }) {
+  const [form, setForm] = useState({
+    name: helper.name || '',
+    bio: helper.bio || '',
+    city: helper.city || 'Mumbai',
+    service_type: helper.service_type || 'maid',
+    experience: helper.experience || 0,
+    availability: helper.availability || 'Full-time',
+    hourly_price: helper.hourly_price || 300,
+    monthly_price: helper.monthly_price || 15000,
+    yearly_price: helper.yearly_price || 150000,
+    skills: (helper.skills || []).join(', '),
+    languages: (helper.languages || []).join(', '),
+    photo: helper.photo || '',
+  });
+  const [saving, setSaving] = useState(false);
+  const [dirty, setDirty] = useState(false);
+  const update = (k, v) => { setForm({...form, [k]: v}); setDirty(true); };
+  const save = async () => {
+    setSaving(true);
+    try {
+      const payload = {
+        ...form,
+        experience: Number(form.experience),
+        hourly_price: Number(form.hourly_price),
+        monthly_price: Number(form.monthly_price),
+        yearly_price: Number(form.yearly_price),
+        skills: form.skills.split(',').map(s=>s.trim()).filter(Boolean),
+        languages: form.languages.split(',').map(s=>s.trim()).filter(Boolean),
+      };
+      await api('/helpers/'+helper.id, { method:'PATCH', body: JSON.stringify(payload) });
+      toast.success('Profile updated successfully');
+      setDirty(false);
+      onSaved?.();
+    } catch (e) { toast.error(e.message); }
+    setSaving(false);
+  };
+  const priceIncrement = (field, amount) => update(field, Math.max(0, Number(form[field]) + amount));
+  return (
+    <div className="space-y-4">
+      {!helper.verified && (
+        <Card className="bg-amber-50 border-amber-200">
+          <CardContent className="p-3 flex items-center gap-2 text-sm">
+            <Shield className="h-4 w-4 text-amber-600"/>
+            <span className="text-amber-900">Your profile is <strong>pending verification</strong>. Upload documents in the Verification tab to get verified and appear higher in listings.</span>
+          </CardContent>
+        </Card>
+      )}
+      <Card>
+        <CardHeader><CardTitle className="text-base flex items-center gap-2"><Edit className="h-4 w-4"/>Edit Your Profile</CardTitle><CardDescription>Update your information anytime. Changes are reflected instantly to households.</CardDescription></CardHeader>
+        <CardContent className="space-y-4">
+          {/* Photo preview */}
+          <div className="flex items-start gap-4">
+            <div className="w-24 h-24 rounded-lg overflow-hidden bg-muted shrink-0">
+              {form.photo ? <img src={form.photo} alt="preview" className="w-full h-full object-cover"/> : <div className="w-full h-full flex items-center justify-center text-muted-foreground text-xs">No photo</div>}
+            </div>
+            <div className="flex-1 space-y-1">
+              <Label>Profile Photo URL</Label>
+              <Input value={form.photo} onChange={e=>update('photo',e.target.value)} placeholder="https://..."/>
+              <p className="text-xs text-muted-foreground">Tip: upload to Imgur/Cloudinary and paste the link.</p>
+            </div>
+          </div>
+
+          <Separator/>
+
+          {/* Basic info */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div><Label>Display Name</Label><Input value={form.name} onChange={e=>update('name',e.target.value)}/></div>
+            <div><Label>City</Label>
+              <Select value={form.city} onValueChange={v=>update('city',v)}>
+                <SelectTrigger><SelectValue/></SelectTrigger>
+                <SelectContent>{CITIES.map(c=><SelectItem key={c} value={c}>{c}</SelectItem>)}</SelectContent>
+              </Select>
+            </div>
+            <div><Label>Service Type</Label>
+              <Select value={form.service_type} onValueChange={v=>update('service_type',v)}>
+                <SelectTrigger><SelectValue/></SelectTrigger>
+                <SelectContent>{SERVICES.map(s=><SelectItem key={s.value} value={s.value}>{s.icon} {s.label}</SelectItem>)}</SelectContent>
+              </Select>
+            </div>
+            <div><Label>Years of Experience</Label><Input type="number" min="0" value={form.experience} onChange={e=>update('experience',e.target.value)}/></div>
+            <div className="md:col-span-2"><Label>Availability</Label>
+              <Select value={form.availability} onValueChange={v=>update('availability',v)}>
+                <SelectTrigger><SelectValue/></SelectTrigger>
+                <SelectContent>{AVAILABILITIES.map(a=><SelectItem key={a} value={a}>{a}</SelectItem>)}</SelectContent>
+              </Select>
+            </div>
+            <div className="md:col-span-2"><Label>Bio / About You</Label><Textarea rows={3} value={form.bio} onChange={e=>update('bio',e.target.value)} placeholder="Tell households about your experience, cooking specialties, languages you speak, etc."/></div>
+            <div><Label>Skills <span className="text-xs text-muted-foreground">(comma separated)</span></Label><Input value={form.skills} onChange={e=>update('skills',e.target.value)} placeholder="Cleaning, Cooking, Childcare"/></div>
+            <div><Label>Languages <span className="text-xs text-muted-foreground">(comma separated)</span></Label><Input value={form.languages} onChange={e=>update('languages',e.target.value)} placeholder="English, Hindi, Tamil"/></div>
+          </div>
+
+          <Separator/>
+
+          {/* Pricing */}
+          <div>
+            <h4 className="font-semibold text-sm mb-2 flex items-center gap-1"><DollarSign className="h-4 w-4"/>Your Service Rates</h4>
+            <p className="text-xs text-muted-foreground mb-3">Update your rates anytime. New bookings will use the updated rates.</p>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+              {[
+                { key:'hourly_price', label:'Hourly Rate', note:'per hour', step:50 },
+                { key:'monthly_price', label:'Monthly Rate', note:'per month', step:1000 },
+                { key:'yearly_price', label:'Yearly Rate', note:'per year', step:10000 },
+              ].map(p => (
+                <div key={p.key} className="border rounded-lg p-3 space-y-2 bg-muted/20">
+                  <div className="text-xs text-muted-foreground uppercase tracking-wide">{p.label}</div>
+                  <div className="flex items-center gap-1">
+                    <span className="text-lg font-bold text-primary">₹</span>
+                    <Input type="number" min="0" step={p.step} className="text-lg font-bold border-0 bg-transparent px-1 focus-visible:ring-1" value={form[p.key]} onChange={e=>update(p.key, e.target.value)}/>
+                  </div>
+                  <div className="text-xs text-muted-foreground">{p.note}</div>
+                  <div className="flex gap-1">
+                    <Button size="sm" variant="outline" className="flex-1" onClick={()=>priceIncrement(p.key, -p.step)}>−₹{p.step}</Button>
+                    <Button size="sm" variant="outline" className="flex-1" onClick={()=>priceIncrement(p.key, p.step)}>+₹{p.step}</Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2 pt-2 border-t">
+            <Button onClick={save} disabled={saving || !dirty} size="lg" className="flex-1"><CheckCircle2 className="h-4 w-4 mr-1"/>{saving ? 'Saving...' : dirty ? 'Save Changes' : 'No changes to save'}</Button>
+            {dirty && <Button variant="outline" onClick={()=>{setForm({
+              name: helper.name || '', bio: helper.bio || '', city: helper.city || 'Mumbai',
+              service_type: helper.service_type || 'maid', experience: helper.experience || 0,
+              availability: helper.availability || 'Full-time',
+              hourly_price: helper.hourly_price || 300, monthly_price: helper.monthly_price || 15000, yearly_price: helper.yearly_price || 150000,
+              skills: (helper.skills || []).join(', '), languages: (helper.languages || []).join(', '), photo: helper.photo || '',
+            }); setDirty(false);}}>Discard</Button>}
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
 function ComplaintDialog({ open, onOpenChange, user, booking, onSubmit }) {
   const [subject, setSubject] = useState('');
   const [message, setMessage] = useState('');
@@ -495,7 +631,8 @@ function HelperDashboard({ user }) {
   const [docFile, setDocFile] = useState(null);
   const load = async () => {
     const d = await api('/helpers?q='+encodeURIComponent(user.name));
-    const mine = d.helpers.find(h => h.user_id === user.id);
+    // Match by user_id first, then fall back to name match
+    const mine = d.helpers.find(h => h.user_id === user.id) || d.helpers.find(h => h.name === user.name);
     setProfile(mine);
     if (mine) {
       const b = await api('/bookings?helper_id='+mine.id); setBookings(b.bookings);
@@ -549,7 +686,7 @@ function HelperDashboard({ user }) {
           <TabsTrigger value="jobs">Job Requests</TabsTrigger>
           <TabsTrigger value="attendance">Attendance</TabsTrigger>
           <TabsTrigger value="docs">Verification Documents</TabsTrigger>
-          <TabsTrigger value="profile">Availability & Plans</TabsTrigger>
+          <TabsTrigger value="profile">My Profile & Rates</TabsTrigger>
         </TabsList>
         <TabsContent value="jobs" className="space-y-2 pt-3">
           {bookings.map(b => (
@@ -654,25 +791,7 @@ function HelperDashboard({ user }) {
           </div>
         </TabsContent>
         <TabsContent value="profile" className="pt-3 space-y-3">
-          {profile && (
-            <Card>
-              <CardHeader><CardTitle className="text-base">Availability & Service Plans</CardTitle></CardHeader>
-              <CardContent className="space-y-3">
-                <div>
-                  <Label>Availability</Label>
-                  <Select value={profile.availability} onValueChange={updateAvailability}>
-                    <SelectTrigger><SelectValue/></SelectTrigger>
-                    <SelectContent>{AVAILABILITIES.map(a=><SelectItem key={a} value={a}>{a}</SelectItem>)}</SelectContent>
-                  </Select>
-                </div>
-                <div className="grid grid-cols-3 gap-2">
-                  <div className="border rounded-lg p-3 text-center"><div className="text-xs text-muted-foreground uppercase">Hourly</div><div className="text-lg font-bold text-primary">₹{profile.hourly_price}</div></div>
-                  <div className="border rounded-lg p-3 text-center"><div className="text-xs text-muted-foreground uppercase">Monthly</div><div className="text-lg font-bold text-primary">₹{profile.monthly_price?.toLocaleString('en-IN')}</div></div>
-                  <div className="border rounded-lg p-3 text-center"><div className="text-xs text-muted-foreground uppercase">Yearly</div><div className="text-lg font-bold text-primary">₹{profile.yearly_price?.toLocaleString('en-IN')}</div></div>
-                </div>
-              </CardContent>
-            </Card>
-          )}
+          {profile && <HelperProfileEditor helper={profile} onSaved={load}/>}
         </TabsContent>
       </Tabs>
     </div>
