@@ -441,20 +441,26 @@ function UserDashboard({ user, onUpdateUser }) {
         </TabsList>
         <TabsContent value="bookings" className="space-y-2 pt-3">
           {bookings.map(b => (
-            <div key={b.id} className="flex items-center justify-between p-3 border rounded-lg gap-2 flex-wrap">
-              <div>
-                <div className="font-medium">{b.helper_name}</div>
-                <div className="text-xs text-muted-foreground">{b.plan} · {b.start_date} · ₹{b.price?.toLocaleString('en-IN')}</div>
-                <div className="text-xs">{b.address}</div>
-              </div>
-              <div className="flex items-center gap-2">
-                <Badge variant={b.status==='accepted'||b.status==='completed'?'default':b.status==='rejected'||b.status==='cancelled'?'destructive':'secondary'}>{b.status}</Badge>
-                {(b.status==='pending'||b.status==='accepted') && <Button size="sm" variant="outline" onClick={()=>cancel(b.id)}><X className="h-3 w-3 mr-1"/>Cancel</Button>}
-                <Button size="sm" variant="ghost" onClick={()=>{setComplaintBooking(b); setComplaintOpen(true);}}><MessageSquareWarning className="h-3 w-3 mr-1"/>Report</Button>
+            <div key={b.id} className="p-3 border rounded-lg gap-2 flex-wrap space-y-2">
+              <div className="flex items-center justify-between flex-wrap gap-2">
+                <div>
+                  <div className="font-medium">{b.helper_name}</div>
+                  <div className="text-xs text-muted-foreground capitalize">{b.plan}{b.hours?` · ${b.hours}h`:''} · {b.start_date} · ₹{b.price?.toLocaleString('en-IN')}</div>
+                  <div className="text-xs mt-1">📍 {b.address}</div>
+                  {b.notes && <div className="text-xs italic text-muted-foreground">Note: {b.notes}</div>}
+                  {b.status==='accepted' && <div className="text-xs mt-1 text-emerald-700 flex items-center gap-1"><CheckCircle2 className="h-3 w-3"/>Helper confirmed! They'll arrive at scheduled time.</div>}
+                  {b.status==='rejected' && <div className="text-xs mt-1 text-rose-700">Helper couldn't take this. Try another one!</div>}
+                  {b.status==='completed' && <div className="text-xs mt-1 text-primary">✓ Service completed. Don't forget to leave a review!</div>}
+                </div>
+                <div className="flex items-center gap-2">
+                  <Badge variant={b.status==='accepted'||b.status==='completed'?'default':b.status==='rejected'||b.status==='cancelled'?'destructive':'secondary'} className="capitalize">{b.status}</Badge>
+                  {(b.status==='pending'||b.status==='accepted') && <Button size="sm" variant="outline" onClick={()=>cancel(b.id)}><X className="h-3 w-3 mr-1"/>Cancel</Button>}
+                  <Button size="sm" variant="ghost" onClick={()=>{setComplaintBooking(b); setComplaintOpen(true);}}><MessageSquareWarning className="h-3 w-3 mr-1"/>Report</Button>
+                </div>
               </div>
             </div>
           ))}
-          {!bookings.length && <p className="text-sm text-muted-foreground">No bookings yet.</p>}
+          {!bookings.length && <p className="text-sm text-muted-foreground">No bookings yet. Browse helpers to get started!</p>}
         </TabsContent>
         <TabsContent value="complaints" className="space-y-2 pt-3">
           <Button size="sm" onClick={()=>{setComplaintBooking(null); setComplaintOpen(true);}}><MessageSquareWarning className="h-4 w-4 mr-1"/>New Complaint</Button>
