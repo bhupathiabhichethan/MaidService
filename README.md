@@ -25,6 +25,16 @@ https://github.com/bhupathiabhichethan/MaidService
 
 ---
 
+## 🔑 Demo Credentials
+
+### Admin
+
+Email:
+admin@helper4u.com
+
+Password:
+admin123
+
 ## ✨ Features
 
 ### 🏠 Household (User)
