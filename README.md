@@ -309,24 +309,21 @@ Fully responsive across:
 
 ---
 
-## 🚢 Deployment
+## 🚀 Deployment
 
-Deployment-ready. Recommended platforms:
+The project is deployed on **Vercel** with **MongoDB Atlas**.
 
-### Vercel (Recommended for Next.js)
-```bash
-npm i -g vercel
-vercel --prod
+### Environment Variables
+
+```env
+MONGO_URL=<MongoDB Atlas Connection String>
+
+DB_NAME=helper4u
+
+NEXT_PUBLIC_BASE_URL=https://maidservice4u-6a92.vercel.app
+
+CORS_ORIGINS=*
 ```
-Add environment variables in Vercel dashboard:
-- `MONGO_URL` (use MongoDB Atlas)
-- `DB_NAME`
-- `NEXT_PUBLIC_BASE_URL`
-
-### Other options
-- Netlify (with Next.js runtime)
-- AWS Amplify / EC2
-- Railway / Render
 
 ---
 
