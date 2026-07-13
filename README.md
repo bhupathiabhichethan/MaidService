@@ -125,6 +125,18 @@ Documents
 Categories
 ```
 
+## 📊 Project Statistics
+
+| Item | Count |
+|------|------:|
+| User Roles | 3 |
+| REST APIs | 20+ |
+| Database Collections | 8 |
+| Service Plans | 3 |
+| Dashboard Modules | 3 |
+| Analytics Charts | 6 |
+| Responsive Pages | 12+ |
+
 ## 📁 Project Structure
 
 ```
