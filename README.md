@@ -78,6 +78,17 @@ admin123
   - Top-Rated Helpers leaderboard
 
 ---
+## 🏗️ System Architecture
+
+```text
+                User Browser
+                      │
+               Next.js Frontend
+                      │
+          Next.js API Routes (REST)
+                      │
+               MongoDB Atlas Database
+```
 
 ## 🛠️ Tech Stack
 
