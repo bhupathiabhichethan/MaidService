@@ -105,6 +105,25 @@ admin123
 | **State** | React hooks + localStorage |
 
 ---
+## 🗄️ Database Collections
+
+```text
+Users
+
+Helpers
+
+Bookings
+
+Reviews
+
+Attendance
+
+Complaints
+
+Documents
+
+Categories
+```
 
 ## 📁 Project Structure
 
