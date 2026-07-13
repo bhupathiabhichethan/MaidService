@@ -355,9 +355,15 @@ CORS_ORIGINS=*
 This project is developed as an academic/portfolio project under Unified Mentor guidance.
 
 ---
-
-## 👤 Author
+## 👨‍💻 Author
 
 **Bhupathi Abhi Chethan**
 
-Project built as part of the Unified Mentor internship — **Helper4U** initiative.
+Unified Mentor Internship Project
+
+Helper4U – Maid & Nanny Service Management Platform
+
+GitHub:
+https://github.com/bhupathiabhichethan
+
+
