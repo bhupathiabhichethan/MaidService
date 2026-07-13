@@ -182,7 +182,13 @@ yarn install
 ### 3. Configure environment variables
 Create a `.env` file in the project root:
 ```env
+# Local Development
+
 MONGO_URL=mongodb://localhost:27017
+
+# Production
+
+Use your MongoDB Atlas connection string
 DB_NAME=helper4u
 NEXT_PUBLIC_BASE_URL=http://localhost:3000
 CORS_ORIGINS=*
