@@ -1,10 +1,11 @@
-# Helper4U — Maid & Nanny Service Management Platform
+# 🏠 Helper4U – Maid & Nanny Service Management Platform
 
-> A centralized web-based platform that connects households with **verified** domestic helpers — maids, babysitters, and nannies — with flexible hourly, monthly & yearly service plans.
+A modern web platform that connects households with verified maids, babysitters, and nannies through secure bookings, transparent pricing, and flexible service plans.
 
-![Status](https://img.shields.io/badge/status-MVP%20Complete-brightgreen)
-![Stack](https://img.shields.io/badge/stack-Next.js%20%7C%20MongoDB%20%7C%20Tailwind-blue)
-![Tests](https://img.shields.io/badge/backend%20tests-46%2F46%20passing-success)
+![Next.js](https://img.shields.io/badge/Next.js-15-black)
+![MongoDB](https://img.shields.io/badge/MongoDB-Atlas-green)
+![Tailwind](https://img.shields.io/badge/TailwindCSS-3-blue)
+![License](https://img.shields.io/badge/License-Academic-orange)
 
 ---
 
