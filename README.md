@@ -13,13 +13,15 @@ A modern web platform that connects households with verified maids, babysitters,
 
 Households often rely on unverified informal networks to hire domestic help — leading to safety risks, unreliable service, and inconsistent pricing. **Helper4U digitizes the entire hiring process** with verified profiles, flexible plans, transparent pricing, and full booking management.
 
-## 🚀 Live Demo
+## 🌐 Live Demo
 
-**Demo Login (Admin):**
-- Email: `admin@helper4u.com`
-- Password: `admin123`
+### Website
 
-Or sign up as a **Household** or **Helper** from the landing page.
+https://maidservice4u-6a92.vercel.app
+
+### GitHub Repository
+
+https://github.com/bhupathiabhichethan/MaidService
 
 ---
 
