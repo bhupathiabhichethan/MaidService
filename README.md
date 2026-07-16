@@ -350,6 +350,48 @@ CORS_ORIGINS=*
 
 ---
 
+## 📸 Application Screenshots
+
+### Landing Page
+
+![Landing Page](screenshots/landing_page.png)
+
+---
+
+### Login Page
+
+![Login Page](screenshots/login_page.png)
+
+---
+
+### Registration Page
+
+![Registration Page](screenshots/register_page.png)
+
+---
+
+### Helper Search and Filters
+
+![Helper Filters](screenshots/filter_page.png)
+
+---
+
+### Household Dashboard
+
+![Household Dashboard](screenshots/user_dashboardPage.png)
+
+---
+
+### Admin Verification
+
+![Admin Verification](screenshots/admin_verification.png)
+
+---
+
+### Admin Analytics Dashboard
+
+![Admin Analytics](screenshots/admin_analytics.png)
+
 ## 📄 License
 
 This project is developed as an academic/portfolio project under Unified Mentor guidance.
